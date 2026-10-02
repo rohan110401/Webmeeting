@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Mail, Video } from "lucide-react";
+import { Eye, EyeOff, LogIn, Video } from "lucide-react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,13 +10,6 @@ import { safeNextPath, useAuth } from "@/auth/AuthProvider";
 import { supabase } from "@/lib/supabase";
 
 const emailSchema = z.string().trim().toLowerCase().email("Please enter a valid email address.");
-
-/**
- * Password sign-in for test accounts: always in local dev builds, and in a
- * deployed build only when it was built with VITE_ALLOW_PASSWORD_SIGNIN=true
- * (the test site). Production builds leave it out.
- */
-const passwordSignInEnabled = import.meta.env.DEV || import.meta.env.VITE_ALLOW_PASSWORD_SIGNIN === "true";
 
 const Login = () => {
   const auth = useAuth();
@@ -38,7 +31,7 @@ const Login = () => {
           <p className="mt-1 text-sm text-muted-foreground">Private video sessions with your own notes.</p>
         </div>
         <div className="rounded-xl border bg-card p-6 shadow-sm">
-          <EmailCodeSignIn onSignedIn={() => navigate(next, { replace: true })} />
+          <PasswordSignIn onSignedIn={() => navigate(next, { replace: true })} />
         </div>
       </div>
     </div>
@@ -46,18 +39,18 @@ const Login = () => {
 };
 
 /**
- * Passwordless sign-in: we email a 6-digit code and the person types it in.
- * Accounts are created by the operator, never here, and the form behaves the
- * same whether or not an email has an account.
+ * Email and password. Accounts are created by the operator in the Supabase
+ * dashboard, never here, and a wrong email and a wrong password get the same
+ * message, so the form never reveals who has an account.
  */
-const EmailCodeSignIn = ({ onSignedIn }: { onSignedIn: () => void }) => {
-  const [step, setStep] = useState<"email" | "code">("email");
+const PasswordSignIn = ({ onSignedIn }: { onSignedIn: () => void }) => {
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const sendCode = async (e: React.FormEvent) => {
+  const signIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     const parsed = emailSchema.safeParse(email);
@@ -65,183 +58,76 @@ const EmailCodeSignIn = ({ onSignedIn }: { onSignedIn: () => void }) => {
       setError(parsed.error.errors[0].message);
       return;
     }
-    setBusy(true);
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: parsed.data,
-      options: { shouldCreateUser: false, emailRedirectTo: window.location.href },
-    });
-    setBusy(false);
-    if (otpError?.status === 429) {
-      setError("Too many attempts. Please wait a minute and try again.");
-      return;
-    }
-    if (otpError && otpError.status !== 422 && otpError.status !== 400) {
-      setError("We couldn't send a code just now. Please try again.");
-      return;
-    }
-    // An unknown email (422 / signups disabled) moves on exactly like a known
-    // one, so the form never reveals who has an account.
-    setEmail(parsed.data);
-    setStep("code");
-  };
-
-  const verifyCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    const token = code.replace(/\s/g, "");
-    if (!/^\d{6}$/.test(token)) {
-      setError("Please enter the 6-digit code from the email.");
+    if (!password) {
+      setError("Please enter your password.");
       return;
     }
     setBusy(true);
-    const { error: verifyError } = await supabase.auth.verifyOtp({ email, token, type: "email" });
-    setBusy(false);
-    if (verifyError) {
-      setError("That code didn't work. Check the latest email, or send a new code.");
-      return;
-    }
-    onSignedIn();
-  };
-
-  if (step === "code") {
-    return (
-      <form onSubmit={verifyCode} className="space-y-4" noValidate>
-        <p className="text-sm text-muted-foreground">
-          If <span className="font-medium text-foreground">{email}</span> has an account, we've emailed it a 6-digit
-          code. It expires in a few minutes.
-        </p>
-        <div className="space-y-1.5">
-          <Label htmlFor="signin-code">Sign-in code</Label>
-          <Input
-            id="signin-code"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            maxLength={7}
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            className="text-center text-lg tracking-[0.4em]"
-            disabled={busy}
-            autoFocus
-            required
-          />
-        </div>
-        {error && (
-          <p className="text-sm text-destructive" role="alert">
-            {error}
-          </p>
-        )}
-        <Button type="submit" className="w-full" disabled={busy}>
-          {busy ? "Checking…" : "Sign in"}
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setStep("email");
-            setCode("");
-            setError(null);
-          }}
-        >
-          <ArrowLeft aria-hidden="true" />
-          Use a different email
-        </Button>
-      </form>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      <form onSubmit={sendCode} className="space-y-4" noValidate>
-        <div className="space-y-1.5">
-          <Label htmlFor="signin-email">Email address</Label>
-          <Input
-            id="signin-email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={busy}
-            required
-          />
-        </div>
-        {error && (
-          <p className="text-sm text-destructive" role="alert">
-            {error}
-          </p>
-        )}
-        <Button type="submit" className="w-full" disabled={busy}>
-          <Mail aria-hidden="true" />
-          {busy ? "Sending…" : "Email me a sign-in code"}
-        </Button>
-        <p className="text-xs text-muted-foreground">No password needed. Accounts are by invitation only.</p>
-      </form>
-      {passwordSignInEnabled && <PasswordSignIn onSignedIn={onSignedIn} />}
-    </div>
-  );
-};
-
-/**
- * Test accounts only: sign in with a password set in the Supabase dashboard,
- * without depending on email delivery. See passwordSignInEnabled.
- */
-const PasswordSignIn = ({ onSignedIn }: { onSignedIn: () => void }) => {
-  const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  if (!open) {
-    return (
-      <button type="button" className="text-xs text-muted-foreground underline" onClick={() => setOpen(true)}>
-        Test account? Sign in with a password
-      </button>
-    );
-  }
-
-  const signIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setBusy(true);
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email: parsed.data, password });
     setBusy(false);
     if (signInError) {
-      setError("That email and password don't match.");
+      setError(
+        signInError.status === 429
+          ? "Too many attempts. Please wait a minute and try again."
+          : signInError.status === 400 || signInError.status === 401
+            ? "That email and password don't match."
+            : "We couldn't sign you in just now. Check your connection and try again.",
+      );
       return;
     }
     onSignedIn();
   };
 
   return (
-    <form onSubmit={signIn} className="space-y-3 rounded-lg border border-dashed p-3" noValidate>
-      <p className="text-xs font-medium">Test accounts only</p>
-      <Input
-        type="email"
-        autoComplete="username"
-        placeholder="Email"
-        aria-label="Test account email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        disabled={busy}
-      />
-      <Input
-        type="password"
-        autoComplete="current-password"
-        placeholder="Password"
-        aria-label="Test account password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        disabled={busy}
-      />
+    <form onSubmit={signIn} className="space-y-4" noValidate>
+      <div className="space-y-1.5">
+        <Label htmlFor="signin-email">Email address</Label>
+        <Input
+          id="signin-email"
+          type="email"
+          autoComplete="username"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={busy}
+          autoFocus
+          required
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="signin-password">Password</Label>
+        <div className="relative">
+          <Input
+            id="signin-password"
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={busy}
+            className="pr-10"
+            required
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground hover:text-foreground"
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
+      </div>
       {error && (
         <p className="text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
-      <Button type="submit" variant="outline" size="sm" disabled={busy}>
-        {busy ? "Signing in…" : "Sign in with password"}
+      <Button type="submit" className="w-full" disabled={busy}>
+        <LogIn aria-hidden="true" />
+        {busy ? "Signing in…" : "Sign in"}
       </Button>
+      <p className="text-xs text-muted-foreground">
+        Accounts are by invitation only. Forgot your password? Ask whoever runs this app to reset it.
+      </p>
     </form>
   );
 };

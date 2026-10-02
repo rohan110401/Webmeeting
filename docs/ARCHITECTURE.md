@@ -6,7 +6,7 @@ Private video sessions between two people. Each person keeps their own notes for
 
 ```
 Browser (React SPA on Netlify, HTTPS)
-  ├─ Supabase Auth ─────── email 6-digit code → JWT        (sign-up disabled; accounts by invitation)
+  ├─ Supabase Auth ─────── email + password → JWT          (sign-up disabled; accounts by invitation)
   ├─ Supabase Postgres ─── sessions, participants, notes   (RLS: you only ever see your own rows)
   │     ▲ save_note()  debounced autosave
   ├─ Edge Function video-token
@@ -21,7 +21,7 @@ Browser (React SPA on Netlify, HTTPS)
 | Frontend | Vite, React 18, TypeScript, Tailwind, react-router 7 (data router), TanStack Query |
 | Video | LiveKit Cloud (`livekit-client` and `@livekit/components-react` hooks with a custom UI), lazy-loaded on the call route |
 | Backend | Supabase: Postgres with RLS and SQL functions, plus two Deno Edge Functions |
-| Auth | Supabase email OTP code, passwordless, with sign-up disabled |
+| Auth | Supabase email and password, with sign-up disabled (accounts created by the operator) |
 | Hosting | Netlify static site; `_headers` sets the CSP, HSTS and Permissions-Policy |
 
 ## Data model

@@ -11,7 +11,7 @@ its publishable key.
 | Supabase project | `uvmilaymaearmtzynhjy` (`https://uvmilaymaearmtzynhjy.supabase.co`) |
 | Repository | `https://github.com/rohan110401/Webmeeting` |
 | Dev server | `http://localhost:5180` |
-| Test site | `https://webmeeting-test.netlify.app` (Netlify site `webmeeting-test`; password sign-in for test accounts on) |
+| Test site | `https://webmeeting-test.netlify.app` (Netlify site `webmeeting-test`) |
 
 ---
 
@@ -37,42 +37,24 @@ Then:
 
 ## 2. Authentication
 
+People sign in with **email and password**. No email is ever sent, so no SMTP or email templates are needed.
+
 In **Authentication → Sign In / Providers**:
 
-- **Allow new users to sign up: off.** Accounts are created only by you (step 3).
-- **Email:** enabled. Set the OTP length to 6 and the OTP expiry to 600 seconds.
+- **Allow new users to sign up: off.** Accounts are created only by you (§3).
+- **Email:** enabled, with *Confirm email* on.
 - Leave every other provider off.
+- Consider raising the minimum password length to 12 under *Password security*.
 
-In **Authentication → Emails → Templates**, edit **Magic Link** so that it contains the code:
-
-```html
-<h2>Your sign-in code</h2>
-<p>Enter this code to sign in: <strong>{{ .Token }}</strong></p>
-<p>It expires in 10 minutes. If you didn't ask for it, ignore this email.</p>
-```
-
-Use the subject "Your sign-in code". Never put session or notes details in emails.
-
-In **Authentication → Emails → SMTP Settings**, set up custom SMTP. The built-in mailer only delivers to members of your Supabase team and is heavily rate-limited.
-
-- Resend free tier:
-  - host `smtp.resend.com`, port `465`;
-  - user `resend`, password = a Resend API key;
-  - sender e.g. `sign-in@yourdomain`, on a domain verified in Resend.
-- In Resend, turn **off** open and click tracking.
-
-In **Authentication → URL Configuration**:
-
-- *Site URL*: the production URL, e.g. `https://meet.yourdomain`.
-- *Redirect URLs*: `http://localhost:5180/**`, plus the production URL with `/**` appended.
+To reset someone's password, open **Authentication → Users**, select the person and use **Reset password** or set a new one there. The app has no self-service reset, because that would need email delivery.
 
 ## 3. People and pairs
 
 Sessions happen between the two members of a **pair**.
 
 1. Create both accounts: **Authentication → Users → Add user → Create new user**.
-   - Enter the email and tick *Auto Confirm User*.
-   - The password field is optional. Leave it empty for real users, who sign in with emailed codes. Set one only for end-to-end test accounts.
+   - Enter the email, set a strong password and tick *Auto Confirm User*.
+   - Share the password with the person privately (not by email).
 2. Pair them in the SQL editor:
 
    ```sql
@@ -116,7 +98,7 @@ cp .env.example .env.local
 
 - Fill in `VITE_SUPABASE_PUBLISHABLE_KEY` from **Project Settings → API Keys** (the publishable or anon key, never the secret or service-role key).
 - Then run `npm install` and `npm run dev`, and open http://localhost:5180.
-- Dev builds show a "sign in with a password" option for test accounts. Deployed builds include it only when built with `VITE_ALLOW_PASSWORD_SIGNIN=true` (the test site); production builds leave it out.
+- People sign in with the email and password you set for them in Supabase (§3).
 
 ## 6. Deploying the site (Netlify)
 

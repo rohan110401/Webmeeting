@@ -5,7 +5,7 @@ Private, end-to-end encrypted video sessions for two people, with **private note
 - Video and audio calls, camera and mic controls, screen sharing, and reconnection
 - A notes panel beside the call that autosaves (resizable on desktop, a bottom sheet on mobile)
 - A history of sessions, each with your own notes
-- Passwordless sign-in by emailed code; accounts by invitation only
+- Email and password sign-in; accounts by invitation only
 - Access enforced in the database: someone else's session or note behaves as if it doesn't exist
 
 Built on React and Vite, Supabase (Auth, Postgres with RLS, Edge Functions) and LiveKit.
