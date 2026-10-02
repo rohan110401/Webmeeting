@@ -20,9 +20,14 @@ export class ApiError extends Error {
   }
 }
 
-// Local development is allowed by default: every endpoint still requires the
-// caller's own access token. Production sets ALLOWED_ORIGINS to the site.
-const DEFAULT_ORIGINS = ["http://localhost:5180", "http://127.0.0.1:5180"];
+// Local development and the test site are allowed by default: every endpoint
+// still requires the caller's own access token. Production sets
+// ALLOWED_ORIGINS to its own site.
+const DEFAULT_ORIGINS = [
+  "http://localhost:5180",
+  "http://127.0.0.1:5180",
+  "https://webmeeting-test.netlify.app",
+];
 
 function allowedOriginPatterns(): string[] {
   const raw = Deno.env.get("ALLOWED_ORIGINS");

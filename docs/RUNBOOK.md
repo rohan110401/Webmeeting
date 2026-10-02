@@ -11,6 +11,7 @@ its publishable key.
 | Supabase project | `uvmilaymaearmtzynhjy` (`https://uvmilaymaearmtzynhjy.supabase.co`) |
 | Repository | `https://github.com/rohan110401/Webmeeting` |
 | Dev server | `http://localhost:5180` |
+| Test site | `https://webmeeting-test.netlify.app` (Netlify site `webmeeting-test`; password sign-in for test accounts on) |
 
 ---
 
@@ -93,12 +94,11 @@ To remove someone's access, delete the user under **Authentication → Users**. 
    | `LIVEKIT_URL` | the project's `wss://…livekit.cloud` URL |
    | `LIVEKIT_API_KEY` | the API key |
    | `LIVEKIT_API_SECRET` | the API secret |
-   | `E2EE_MASTER_SECRET` | a random string of at least 32 characters, e.g. from `openssl rand -base64 48` |
+   | `E2EE_MASTER_SECRET` | *(optional)* overrides the master secret that migration `…000300` generates in Vault |
    | `ALLOWED_ORIGINS` | `https://meet.yourdomain` (comma-separate several; `http://localhost:5180` is allowed when this is unset) |
 
-   - **Keep a copy of `E2EE_MASTER_SECRET` in your password manager.**
-   - Changing it only affects calls that start afterwards, because nothing encrypted with it is stored.
-   - If any of the first four secrets is missing, joining fails with "Video isn't set up yet". The app never falls back to an unencrypted call.
+   - The encryption master secret is generated inside the database (Vault, `e2ee_master_secret`), so nobody has to create or handle it. Changing it only affects calls that start afterwards, because nothing encrypted with it is stored.
+   - If any LiveKit secret is missing, joining fails with "Video isn't set up yet". The app never falls back to an unencrypted call.
 4. Deploy both functions. `supabase/config.toml` already turns off the gateway JWT check, because each function verifies the caller with Supabase Auth itself.
 
    ```bash
@@ -116,7 +116,7 @@ cp .env.example .env.local
 
 - Fill in `VITE_SUPABASE_PUBLISHABLE_KEY` from **Project Settings → API Keys** (the publishable or anon key, never the secret or service-role key).
 - Then run `npm install` and `npm run dev`, and open http://localhost:5180.
-- Dev builds show a "sign in with a password" option for test accounts. Production builds don't contain it.
+- Dev builds show a "sign in with a password" option for test accounts. Deployed builds include it only when built with `VITE_ALLOW_PASSWORD_SIGNIN=true` (the test site); production builds leave it out.
 
 ## 6. Deploying the site (Netlify)
 

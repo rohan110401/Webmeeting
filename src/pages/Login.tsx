@@ -11,6 +11,13 @@ import { supabase } from "@/lib/supabase";
 
 const emailSchema = z.string().trim().toLowerCase().email("Please enter a valid email address.");
 
+/**
+ * Password sign-in for test accounts: always in local dev builds, and in a
+ * deployed build only when it was built with VITE_ALLOW_PASSWORD_SIGNIN=true
+ * (the test site). Production builds leave it out.
+ */
+const passwordSignInEnabled = import.meta.env.DEV || import.meta.env.VITE_ALLOW_PASSWORD_SIGNIN === "true";
+
 const Login = () => {
   const auth = useAuth();
   const navigate = useNavigate();
@@ -169,17 +176,16 @@ const EmailCodeSignIn = ({ onSignedIn }: { onSignedIn: () => void }) => {
         </Button>
         <p className="text-xs text-muted-foreground">No password needed. Accounts are by invitation only.</p>
       </form>
-      {import.meta.env.DEV && <DevPasswordSignIn onSignedIn={onSignedIn} />}
+      {passwordSignInEnabled && <PasswordSignIn onSignedIn={onSignedIn} />}
     </div>
   );
 };
 
 /**
- * Local development only (compiled out of production builds): sign in test
- * accounts that have a password set in the Supabase dashboard, without
- * depending on email delivery.
+ * Test accounts only: sign in with a password set in the Supabase dashboard,
+ * without depending on email delivery. See passwordSignInEnabled.
  */
-const DevPasswordSignIn = ({ onSignedIn }: { onSignedIn: () => void }) => {
+const PasswordSignIn = ({ onSignedIn }: { onSignedIn: () => void }) => {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -189,7 +195,7 @@ const DevPasswordSignIn = ({ onSignedIn }: { onSignedIn: () => void }) => {
   if (!open) {
     return (
       <button type="button" className="text-xs text-muted-foreground underline" onClick={() => setOpen(true)}>
-        Local testing: sign in with a password
+        Test account? Sign in with a password
       </button>
     );
   }
@@ -209,7 +215,7 @@ const DevPasswordSignIn = ({ onSignedIn }: { onSignedIn: () => void }) => {
 
   return (
     <form onSubmit={signIn} className="space-y-3 rounded-lg border border-dashed p-3" noValidate>
-      <p className="text-xs font-medium">Local testing only — not in production builds</p>
+      <p className="text-xs font-medium">Test accounts only</p>
       <Input
         type="email"
         autoComplete="username"

@@ -8,7 +8,7 @@ async function signIn(browser: Browser, user: { email?: string; password?: strin
   const context = await browser.newContext();
   const page = await context.newPage();
   await page.goto("/login");
-  // Password sign-in exists only in dev builds, for test accounts.
+  // Password sign-in exists only in dev and test builds, for test accounts.
   await page.getByRole("button", { name: /sign in with a password/i }).click();
   await page.getByLabel("Test account email").fill(user.email as string);
   await page.getByLabel("Test account password").fill(user.password as string);

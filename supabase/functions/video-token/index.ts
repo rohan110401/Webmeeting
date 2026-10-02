@@ -34,7 +34,9 @@ Deno.serve(createHandler(async (body, req) => {
   assertCanJoin(info, Date.now());
 
   const config = liveKitConfig();
-  const master = Deno.env.get("E2EE_MASTER_SECRET");
+  // A function secret wins; otherwise the secret generated in Vault.
+  const master = Deno.env.get("E2EE_MASTER_SECRET") ||
+    unwrap<string | null>(await db.rpc("e2ee_master_secret"));
   // Fail closed: no call without end-to-end encryption.
   if (!config || !master || master.length < 32) throw NOT_CONFIGURED;
 
