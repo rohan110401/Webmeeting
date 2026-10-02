@@ -2,7 +2,7 @@
 -- Webmeeting: schema
 --
 -- Private two-person video sessions with private, per-person notes.
--- Access rules live in 20261002000200_access.sql; this file only creates
+-- Access rules live in 20261002143344_access.sql; this file only creates
 -- objects, and nothing here is reachable through the API until that file
 -- grants it.
 -- =============================================================================

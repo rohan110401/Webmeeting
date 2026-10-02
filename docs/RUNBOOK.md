@@ -94,7 +94,7 @@ To remove someone's access, delete the user under **Authentication → Users**. 
    | `LIVEKIT_URL` | the project's `wss://…livekit.cloud` URL |
    | `LIVEKIT_API_KEY` | the API key |
    | `LIVEKIT_API_SECRET` | the API secret |
-   | `E2EE_MASTER_SECRET` | *(optional)* overrides the master secret that migration `…000300` generates in Vault |
+   | `E2EE_MASTER_SECRET` | *(optional)* overrides the master secret that migration `…143358_e2ee_secret` generates in Vault |
    | `ALLOWED_ORIGINS` | `https://meet.yourdomain` (comma-separate several; `http://localhost:5180` is allowed when this is unset) |
 
    - The encryption master secret is generated inside the database (Vault, `e2ee_master_secret`), so nobody has to create or handle it. Changing it only affects calls that start afterwards, because nothing encrypted with it is stored.
