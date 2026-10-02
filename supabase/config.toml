@@ -1,0 +1,11 @@
+project_id = "uvmilaymaearmtzynhjy"
+
+# Both functions verify the caller's access token themselves with Supabase Auth
+# (supabase.auth.getUser), which works with both legacy and asymmetric JWT
+# signing keys. The gateway check is off so a signing-key rotation can't lock
+# people out of their calls.
+[functions.video-token]
+verify_jwt = false
+
+[functions.session-end]
+verify_jwt = false
