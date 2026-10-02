@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222 30% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 30% 14%;
+    --primary: 221 70% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 214 25% 93%;
+    --secondary-foreground: 222 30% 18%;
+    --muted: 214 20% 94%;
+    --muted-foreground: 218 12% 42%;
+    --accent: 214 30% 92%;
+    --accent-foreground: 222 30% 14%;
+    --destructive: 0 70% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 60% 32%;
+    --success-foreground: 0 0% 100%;
+    --border: 214 18% 87%;
+    --input: 214 18% 82%;
+    --ring: 221 70% 45%;
+    --radius: 0.75rem;
+    /* The call screen is always dark, whatever the page theme. */
+    --stage: 222 22% 9%;
+    --stage-tile: 222 18% 15%;
+    --stage-bar: 222 20% 12%;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: 222 22% 10%;
+      --foreground: 210 20% 94%;
+      --card: 222 20% 13%;
+      --card-foreground: 210 20% 94%;
+      --primary: 217 85% 62%;
+      --primary-foreground: 222 30% 10%;
+      --secondary: 222 16% 20%;
+      --secondary-foreground: 210 20% 94%;
+      --muted: 222 16% 18%;
+      --muted-foreground: 215 14% 66%;
+      --accent: 222 16% 22%;
+      --accent-foreground: 210 20% 94%;
+      --destructive: 0 70% 58%;
+      --success: 152 55% 48%;
+      --success-foreground: 222 30% 10%;
+      --border: 222 14% 24%;
+      --input: 222 14% 28%;
+      --ring: 217 85% 62%;
+    }
+  }
+
+  * {
+    @apply border-border;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
